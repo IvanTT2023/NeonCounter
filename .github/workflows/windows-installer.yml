@@ -1,0 +1,56 @@
+(cd "$(git rev-parse --show-toplevel)" && git apply --3way <<'EOF' 
+diff --git a/.github/workflows/windows-installer.yml b/.github/workflows/windows-installer.yml
+new file mode 100644
+index 0000000000000000000000000000000000000000..306c5f7d716adfc4f03c46609eee5dc16fc12a93
+--- /dev/null
++++ b/.github/workflows/windows-installer.yml
+@@ -0,0 +1,46 @@
++name: Build Windows Installer
++
++on:
++  workflow_dispatch:
++  push:
++    tags:
++      - 'v*'
++
++jobs:
++  build:
++    runs-on: windows-latest
++
++    steps:
++      - name: Checkout
++        uses: actions/checkout@v4
++
++      - name: Setup Python
++        uses: actions/setup-python@v5
++        with:
++          python-version: '3.11'
++
++      - name: Install Inno Setup
++        run: choco install innosetup --no-progress -y
++
++      - name: Build EXE + Installer
++        shell: cmd
++        working-directory: ${{ github.workspace }}
++        run: |
++          if not exist build_windows.bat (
++            echo build_windows.bat not found in %CD%
++            dir
++            exit /b 1
++          )
++          call .\build_windows.bat
++
++      - name: Upload EXE
++        uses: actions/upload-artifact@v4
++        with:
++          name: NeonCounter-exe
++          path: dist/NeonCounter.exe
++
++      - name: Upload Installer
++        uses: actions/upload-artifact@v4
++        with:
++          name: NeonCounter-installer
++          path: installer/output/NeonCounterSetup.exe
+ 
+EOF
+)
